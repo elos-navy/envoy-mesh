@@ -19,7 +19,7 @@ public class MasterServiceApplication {
 		return builder.build();
 	}
 	
-	@Bean
+	/* @Bean
     public CommandLineRunner commandLineRunner(RestTemplate clirestTemplate) throws Exception {
         return args -> {
 			
@@ -28,6 +28,6 @@ public class MasterServiceApplication {
 			
 			System.out.println("Test service call from boot: " + m.toString());
         };
-    }
+    } */
 
 }
