@@ -1,31 +1,31 @@
 apiVersion: v1
 kind: DeploymentConfig
 metadata:
-  name: service-a
-  app: service-a
+  name: service-b
+  app: service-b
   labels:
-    app: service-a
+    app: service-b
 spec:
   replicas: 1
   selector:
-    app: service-a
-    deploymentconfig: service-a
+    app: service-b
+    deploymentconfig: service-b
   strategy:
     resources: {}
     type: Rolling
   template:
     metadata:
       labels:
-        app: service-a
-        deploymentconfig: service-a
+        app: service-b
+        deploymentconfig: service-b
     spec:
       containers:
-        - name: service-a
+        - name: service-b
           env:
             - name: server.port
               value: "8080"
             - name: serviceid
-              value: "Service-A"
+              value: "Service-B"
           image: demoservice:latest
           imagePullPolicy: Always
           livenessProbe:
@@ -64,9 +64,9 @@ spec:
             - '-l'
             - debug
             - '--service-cluster'
-            - service_a
+            - service_b
             - '--service-node'
-            - service_a
+            - service_b
             - '--log-format'
             - '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'
           command:
@@ -93,17 +93,17 @@ spec:
       volumes:
         - name: envoy-config-volume
           configMap:
-            name: servicea-sidecar-config
+            name: serviceb-sidecar-config
             defaultMode: 420
             items:
-              - key: servicea-envoy-config
+              - key: serviceb-envoy-config
                 path: config.yaml
   triggers:
   - type: ConfigChange
   - imageChangeParams:
       automatic: true
       containerNames:
-        - service-a
+        - service-b
       from:
         kind: ImageStreamTag
         name: demoservice:latest
