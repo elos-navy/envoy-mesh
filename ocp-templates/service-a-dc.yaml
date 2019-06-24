@@ -1,9 +1,10 @@
 apiVersion: v1
 kind: DeploymentConfig
 metadata:
+  name: service-a
+  app: service-a
   labels:
     app: service-a
-  name: service-a
 spec:
   replicas: 1
   selector:
@@ -56,10 +57,48 @@ spec:
             protocol: TCP
           resources: {}
           terminationMessagePath: /dev/termination-log
+        - name: envoy-sidecar
+          args:
+            - '-c'
+            - /etc/envoy-config/config.yaml
+            - '-l'
+            - debug
+            - '--service-cluster'
+            - service_a
+            - '--service-node'
+            - service_a
+            - '--log-format'
+            - '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'
+          command:
+            - /usr/local/bin/envoy
+          image: 'envoyproxy/envoy:latest'
+          imagePullPolicy: Always
+          name: envoy
+          ports:
+            - containerPort: 9901
+              name: envoy-admin
+              protocol: TCP
+            - containerPort: 8789
+              name: envoy-web
+              protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /etc/envoy-config/
+              name: envoy-config-volume
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       securityContext: {}
       terminationGracePeriodSeconds: 30
+      volumes:
+        - name: envoy-config-volume
+          configMap:
+            name: servicea-sidecar-config
+            defaultMode: 420
+            items:
+              - key: servicea-envoy-config
+                path: config.yaml
   triggers:
   - type: ConfigChange
   - imageChangeParams:
