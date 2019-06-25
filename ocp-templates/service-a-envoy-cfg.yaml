@@ -15,7 +15,6 @@ data:
           port_value: 9901
     static_resources:
       listeners:
-
         -
           name: "service-a-svc-http-listener"
           address:

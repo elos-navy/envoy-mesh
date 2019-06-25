@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: master-service
+  app: master-service
+  labels:
+    app: master-service
+spec:
+  replicas: 1
+  selector:
+    app: master-service
+    deploymentconfig: master-dc
+  strategy:
+    resources: {}
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: master-service
+        deploymentconfig: master-dc
+    spec:
+      containers:
+        - name: master-service
+          env:
+            - name: server.port
+              value: "8080"
+            - name: servicea.uri
+              value: "http://localhost:8180/greeting"
+            - name: servicea.enabled
+              value: "true"
+            - name: serviceb.uri
+              value: "http://localhost:8280/greeting"
+            - name: serviceb.enabled
+              value: "true"  
+          image: masterservice:latest
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1     
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8778
+            protocol: TCP
+          - containerPort: 9779
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+        - name: envoy-sidecar
+          args:
+            - '-c'
+            - /etc/envoy-config/config.yaml
+            - '-l'
+            - debug
+            - '--service-cluster'
+            - master-service
+            - '--service-node'
+            - master-service
+            - '--log-format'
+            - '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'
+          command:
+            - /usr/local/bin/envoy
+          image: 'envoyproxy/envoy:latest'
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9901
+              name: envoy-admin
+              protocol: TCP
+            - containerPort: 9080
+              name: envoy-web
+              protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /etc/envoy-config/
+              name: envoy-config-volume
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: envoy-config-volume
+          configMap:
+            name: master-sidecar-config
+            defaultMode: 420
+            items:
+              - key: master-envoy-config
+                path: config.yaml
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+        - master-service
+      from:
+        kind: ImageStreamTag
+        name: masterservice:latest
+    type: ImageChange

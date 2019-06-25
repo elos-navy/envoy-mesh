@@ -41,13 +41,13 @@ public class MasterServiceController {
         String respB = null;
         
         if(this.serviceaEnabled)
-            respA = callService(restTemplate, serviceaURI, "World A", timeout1);
+            respA = callService(restTemplate, serviceaURI+"?"+name1+"&"timeout1);
 
         if(this.servicebEnabled)
-            respB = callService(restTemplate, servicebURI, "World B", timeout2);
+            respB = callService(restTemplate, servicebURI+"?"+name2+"&"timeout2);
        
 
-        return respA + " " + respB;
+        return respA + " \n" + respB;
     }
 
     private String callService(RestTemplate restTemplate, String serviceURI, String inputName, long timeout) {
