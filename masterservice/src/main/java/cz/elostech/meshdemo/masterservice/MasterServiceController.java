@@ -41,17 +41,17 @@ public class MasterServiceController {
         String respB = null;
         
         if(this.serviceaEnabled)
-            respA = callService(restTemplate, serviceaURI+"?name="+name1+"&timeout="+timeout1);
+            respA = callService(restTemplate, serviceaURI+"?name={name}&timeout={timeout}", name1, timeout1);
 
         if(this.servicebEnabled)
-            respB = callService(restTemplate, servicebURI+"?name="+name2+"&timeout="+timeout2);
+            respB = callService(restTemplate, servicebURI+"?name={name}&timeout={timeout}", name2, timeout2);
        
 
-        return respA + " \n" + respB;
+        return respA + "<br>" + respB;
     }
 
-    private String callService(RestTemplate restTemplate, String serviceURI) {
-        Message m = restTemplate.getForObject(serviceURI, Message.class);
+    private String callService(RestTemplate restTemplate, String serviceURI, String name, long timeout) {
+        Message m = restTemplate.getForObject(serviceURI, Message.class, name, timeout);
         System.out.println("Test service call from web: " + m.toString());
         return m.toString();
     }
