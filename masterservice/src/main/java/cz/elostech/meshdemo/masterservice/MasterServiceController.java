@@ -41,10 +41,10 @@ public class MasterServiceController {
         String respB = null;
         
         if(this.serviceaEnabled)
-            respA = callService(restTemplate, serviceaURI+"?"+name1+"&"+timeout1);
+            respA = callService(restTemplate, serviceaURI+"?name="+name1+"&timeout="+timeout1);
 
         if(this.servicebEnabled)
-            respB = callService(restTemplate, servicebURI+"?"+name2+"&"+timeout2);
+            respB = callService(restTemplate, servicebURI+"?name="+name2+"&timeout="+timeout2);
        
 
         return respA + " \n" + respB;
